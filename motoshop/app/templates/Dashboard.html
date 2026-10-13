@@ -1,0 +1,84 @@
+<!--
+  DIARIO DI SVILUPPO - PANNELLO CLIENTE / AREA PERSONALE (Dashboard.html)
+  ==========================================================================
+  questa vista gestisce l'area privata per gli utenti registrati con ruolo standard.
+  l'interfaccia e' divisa in due sezioni: a sinistra c'e' una colonna stretta con
+  l'avatar circolare, il nome, l'email e l'etichetta del profilo, mentre a destra
+  viene renderizzato l'elenco degli ordini conclusi con lo stato della spedizione.
+
+  dettagli tecnici di montaggio e scelte fatte per il passaggio dati:
+  1) collegamento sessione-javascript:
+     il file dashboard_cliente.js risiede nella cartella static e non puo interpretare
+     i costrutti jinja tipo {{ session['email'] }}. invece di fare una chiamata GET
+     aggiuntiva all'avvio verso una rotta /api/me solo per recuperare nome e cognome,
+     ho inserito i dati nei data-attributes (data-nome, data-cognome, data-email)
+     direttamente sul tag <main id="dashboard-data"> usando session.get() con stringa vuota
+     come fallback per evitare eccezioni jinja se la sessione scade.
+     in questo modo lo script legge dataset.nome e dataset.email a costo zero nel DOMContentLoaded.
+
+  2) rendering asincrono dello storico acquisti:
+     il container #orders-container parte con un testo grigio provvisorio di caricamento.
+     lo script contatta il backend, prende la lista degli ordini legati a quell'email
+     e sostituisce il testo con le schede degli acquisti e i dettagli dei prodotti.
+     se non ci sono ordini mostra un avviso vuoto senza bloccare l'interfaccia.
+
+  3) struttura grafica modulare:
+     mantengo navbar.html e footer.html inclusi per uniformita visiva
+     con il resto dell'e-commerce e collego motoshop_prodotti.css con url_for di Flask.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- meta tag standard per codifica caratteri utf-8 e visualizzazione responsive -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Personale - Motoshop</title>
+    <!-- foglio di stile globale del catalogo e dell'area riservata -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- navbar condivisa inclusa tramite templating jinja -->
+    {% include 'navbar.html' %}
+
+    <!-- 
+      TRUCCHETTO ARCHITETTURALE: 
+      Siccome il file JS è esterno e non può leggere direttamente le variabili di sessione di Flask (Jinja),
+      ho inserito i dati dell'utente dentro questi attributi "data-*" nel tag HTML. 
+      In questo modo il JavaScript può leggerli in modo pulito e sicuro.
+    -->
+    <main class="profile-layout" id="dashboard-data" 
+          data-nome="{{ session.get('nome', '') }}" 
+          data-cognome="{{ session.get('cognome', '') }}" 
+          data-email="{{ session.get('email', '') }}">
+        
+        <!-- Sidebar sinistra con le info del profilo utente e avatar generato con le iniziali -->
+        <aside class="profile-sidebar">
+            <!-- cerchio arancione per visualizzare le iniziali estratte da js -->
+            <div style="width: 80px; height: 80px; background: #ff9900; color: black; font-size: 32px; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 15px auto;" id="user-initials">-</div>
+            <!-- testo provvisorio prima del rendering da parte dello script cliente -->
+            <h2 id="sidebar-name">Caricamento...</h2>
+            <p id="sidebar-email">-</p>
+            <!-- box con bordo scuro per evidenziare il livello di autorizzazione account -->
+            <div style="background: #121212; padding: 10px; border-radius: 8px; border: 1px solid #333; margin-top: 20px;">
+                <span style="font-size: 12px; color: #888; display: block;">Profilo Verificato</span>
+                <b style="color: #00ffcc; font-size: 14px;">CLIENTE</b>
+            </div>
+        </aside>
+
+        <!-- Colonna destra con lo storico degli ordini effettuati dall'utente -->
+        <section class="profile-content">
+            <h2>I tuoi Ordini e Spedizioni</h2>
+            <!-- questo box viene svuotato e popolato dinamicamente con le card degli ordini -->
+            <div id="orders-container">
+                <p style="color: #888;">Caricamento ordini in corso...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- footer istituzionale con contatti e link informativi -->
+    {% include 'footer.html' %}
+
+    <!-- Script che legge i data-* e richiede gli ordini via API -->
+    <script src="{{ url_for('static', filename='js/dashboard_cliente.js') }}"></script>
+</body>
+</html>

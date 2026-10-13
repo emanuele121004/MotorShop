@@ -1,0 +1,84 @@
+<!--
+  DIARIO DI SVILUPPO E SPECIFICHE FRONTEND - MOTOSHOP (Login.html)
+  ===================================================================================
+  Modulo di autenticazione e controllo accessi per gli utenti della piattaforma.
+  
+  Riflessioni architetturali, gestione delle sessioni e sicurezza:
+  
+  1. Selezione del ruolo e routing dei permessi:
+     A differenza della schermata di registrazione (riservata ai soli clienti per
+     evitare vulnerabilita di privilege escalation), la vista di login espone un selettore
+     esplicito tra 'cliente', 'lavoratore' e 'admin'. Questo consente al backend Flask
+     di verificare non soltanto la corrispondenza delle credenziali (email e password),
+     ma anche che l'utente stia effettuando l'accesso con il profilo operativo corretto.
+     In caso di successo, la sessione viene valorizzata con il livello di autorizzazione
+     adeguato, reindirizzando l'utente alla vista pertinente (catalogo per i clienti,
+     gestione ordini per i lavoratori o dashboard di controllo per gli amministratori).
+
+  2. Verifica delle credenziali e ciclo di vita della richiesta:
+     Il modulo invia i dati tramite metodo POST verso l'endpoint /login. Lato server
+     la password inserita viene verificata a confronto con l'hash crittografico
+     memorizzato nella collection MongoDB mediante algoritmo PBKDF2:SHA256. Se le
+     credenziali non combaciano o se il ruolo selezionato non corrisponde a quello
+     effettivamente associato all'account, la richiesta viene respinta con un messaggio
+     di errore puntuale senza esporre dettagli interni sulla natura del fallimento.
+
+  3. Usabilita, controlli nativi e layout responsivo:
+     Anche per questo form si e' scelto di sfruttare i controlli HTML5 nativi
+     (attributi required, type="email", type="password") per fornire un primo livello
+     di validazione client-side immediato prima dell'invio dei pacchetti di rete.
+     Il layout adotta il contenitore .auth-container con larghezza massima di 450px,
+     mantenendo una perfetta coerenza grafica con la vista di registrazione.
+     Il selettore del ruolo e il pulsante primario .btn-buy sono strutturati per
+     garantire un'area di interazione confortevole anche sui display compatti da smartphone.
+  ===================================================================================
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accedi - Motoshop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    {% include 'navbar.html' %}
+
+    <!-- Form di autenticazione -->
+    <main class="auth-container">
+        <h2>Accedi a Motoshop</h2>
+        
+        <!-- I dati vengono inviati in POST alla rotta /login gestita da Flask -->
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="La tua email" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="La tua password" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Ruolo</label>
+                <select name="role" required>
+                    <option value="cliente">Cliente</option>
+                    <option value="lavoratore">Lavoratore</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-buy" style="width: 100%; text-align: center; margin-top: 10px;">Login</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Non hai un account? <a href="{{ url_for('register_page') }}">Registrati qui</a></p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+</body>
+</html>

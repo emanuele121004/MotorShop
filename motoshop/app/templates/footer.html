@@ -1,0 +1,26 @@
+<!-- 
+  DIARIO DI BORDO E NOTE DI STILE - COMPONENTE FOOTER CONDIVISO (footer.html)
+  =============================================================================
+  questo snippet costituisce il blocco parziale di chiusura incluso in tutte le
+  viste del sito (cataloghi, dettaglio prodotto, carrello, dashboard e pagine statiche).
+  l'obiettivo principale qui e' mantenere un elemento leggero, privo di script o dipendenze
+  esterne, che fornisca il copyright istituzionale e una chiusura cromatica coerente
+  con la palette scura dell'intero e-commerce.
+
+  dettagli tecnici di resa grafica e posizionamento:
+  1) allineamento sticky con flexbox:
+     per evitare il classico problema del footer che fluttua a meta schermo nelle pagine
+     con poco contenuto (come acquista.html o i form di login), il body dell'applicazione
+     e' impostato come flex container a colonna (display: flex; flex-direction: column; min-height: 100vh).
+     l'istruzione inline 'margin-top: auto' applicata su questo tag <footer> sfrutta
+     la meccanica dei margini automatici in flexbox, spingendo il footer tassativamente
+     in fondo alla viewport senza dover ricorrere a posizionamenti fissi o calcoli javascript.
+
+  2) stile e contrasto:
+     lo sfondo #1e1e1e crea un leggero stacco visivo rispetto al nero di fondo della pagina,
+     delimitato dal bordo superiore sottile #333. il testo neutro #888 assicura leggibilita
+     senza distogliere l'attenzione dagli elementi interattivi principali.
+-->
+<footer style="text-align: center; padding: 20px; background-color: #1e1e1e; margin-top: auto; border-top: 1px solid #333; color: #888;">
+    <p>&copy; 2026 Motoshop - Tutti i diritti riservati</p>
+</footer>

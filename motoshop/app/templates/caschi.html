@@ -1,0 +1,51 @@
+<!--
+  DIARIO DI SVILUPPO - VETRINA CASCHI (caschi.html)
+  ==========================================================================
+  questo template definisce la pagina di catalogo per il comparto caschi.
+  l'architettura ricalca quella delle altre categorie merceologiche (come giacche
+  e guanti): invece di generare il markup dei singoli articoli direttamente
+  in python con jinja, preparo solo la gabbia statica con l'header descrittivo
+  e lascio il popolamento asincrono al file javascript dedicato (caschi.js).
+
+  dettagli tecnici di montaggio della pagina:
+  - inclusione modulare di navbar.html e footer.html per standardizzare l'interfaccia
+    senza duplicare decine di righe di markup tra i vari file di categoria.
+  - il blocco #product-container include un paragrafo iniziale grigio di fallback
+    che informa l'utente sul caricamento in corso da mongodb: verra sovrascritto
+    appena lo script scarica i dati tramite fetch e costruisce le card dinamicamente.
+  - per collegare il foglio di stile motoshop_prodotti.css e lo script caschi.js
+    passo per la funzione helper url_for di flask, cosi non rischio collegamenti
+    rotti nel caso si cambiasse il prefisso degli endpoint statici.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- impostazioni di codifica caratteri e visualizzazione per dispositivi mobili -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caschi - Motoshop</title>
+    <!-- css globale con lo stile scuro comune a tutti i cataloghi prodotto -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- navbar condivisa inclusa tramite il motore jinja2 -->
+    {% include 'navbar.html' %}
+
+    <!-- blocco hero in testata con titolo e sottotitolo della sezione -->
+    <header class="catalog-hero">
+        <h1>Caschi Moto</h1>
+        <p>I migliori caschi integrali, modulari e jet per la tua sicurezza.</p>
+    </header>
+
+    <!-- griglia prodotti: viene svuotata e popolata dal file javascript collegato -->
+    <section class="product-section" id="product-container">
+        <p style="color: #888; text-align: center; width: 100%;">Caricamento caschi dal database...</p>
+    </section>
+
+    <!-- footer istituzionale con note legali e recapiti -->
+    {% include 'footer.html' %}
+    
+    <!-- logica client-side per fetch e filtraggio della categoria dal backend -->
+    <script src="{{ url_for('static', filename='js/caschi.js') }}"></script>
+</body>
+</html>

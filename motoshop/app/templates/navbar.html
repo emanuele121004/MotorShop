@@ -1,0 +1,49 @@
+<!--
+  DIARIO DI BORDO E NOTE DI PROGETTAZIONE - HEADER DI NAVIGAZIONE GLOBALE (navbar.html)
+  =======================================================================================
+  questo snippet definisce la barra di navigazione inclusa in cima a tutte le pagine
+  dell'e-commerce (homepage, sezioni di catalogo, dettaglio articoli, carrello e dashboard).
+  l'obiettivo principale e' fornire un accesso immediato alle sezioni cardine del portale,
+  adattando dinamicamente le voci mostrate in base allo stato di autenticazione dell'utente.
+
+  dettagli tecnici di funzionamento e logica condizionale Jinja2:
+  1) routing dinamico degli endpoint:
+     tutti i collegamenti ipertestuali sono generati programmaticamente tramite url_for().
+     le pagine statiche o semistatiche (Catalogo, Contatti, Termini, Carrello) vengono instradate
+     attraverso l'helper generico serve_page specificando il template target, mentre le route
+     adibite a logica dedicata (home_page, login_page, dashboard_page, logout) sfruttano i loro handler.
+
+  2) gestione dinamica dello stato sessione:
+     il blocco condizionale if session.get('email') ispeziona direttamente il dizionario
+     di sessione firmato lato server da Flask. Se l'utente e' autenticato, il menu espone
+     l'accesso rapido all'Area Personale e il comando di logout 'Esci' (evidenziato con
+     accento cromatico rosso vivo #ff4d4d). Se invece la sessione risulta anonima o scaduta,
+     il ramo else mostra esclusivamente la voce di atterraggio 'Accedi'.
+
+  3) accessibilita semantica e struttura:
+     la marcatura impiega i tag semantici header e nav con lista non ordinata (ul),
+     garantendo leggibilita ottimale per gli screen reader e predisponendo il layout flessibile
+     gestito via CSS in motoshop_prodotti.css.
+-->
+<header class="navbar">
+    <!-- marchio testuale del brand posizionato sul lato sinistro -->
+    <div class="logo">Motoshop</div>
+    <nav>
+        <!-- lista orizzontale dei collegamenti principali di navigazione -->
+        <ul class="nav-links">
+            <li><a href="{{ url_for('home_page') }}">Home</a></li>
+            <li><a href="{{ url_for('serve_page', filename='CatalogoUniversale.html') }}">Sfoglia il catalogo</a></li>
+            <li><a href="{{ url_for('serve_page', filename='Contact.html') }}">Contatti</a></li>
+            <li><a href="{{ url_for('serve_page', filename='TerminiCondizioni.html') }}">Termini e Condizioni</a></li>
+            <li><a href="{{ url_for('serve_page', filename='carrello.html') }}">Carrello</a></li>
+            
+            <!-- blocco dinamico che commuta le voci di autenticazione in base alla sessione attiva -->
+            {% if session.get('email') %}
+                <li><a href="{{ url_for('dashboard_page') }}">Area Personale</a></li>
+                <li><a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-weight: bold;">Esci</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login_page') }}">Accedi</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>

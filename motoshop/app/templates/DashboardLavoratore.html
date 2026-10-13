@@ -1,0 +1,116 @@
+<!--
+  DIARIO DI BORDO E NOTE DI ARCHITETTURA - PANNELLO LAVORATORE (DashboardLavoratore.html)
+  =============================================================================================
+  questo file gestisce l'interfaccia di inserimento e monitoraggio merci per gli addetti di magazzino.
+  a differenza della schermata riservata all'amministratore (che ha anche le tabelle degli account e
+  i controlli di sistema avanzati), chi lavora qui deve poter svolgere solo due task fondamentali
+  e quotidiani: pubblicare un nuovo articolo con foto e prezzo, e verificare gli elementi già a catalogo
+  con la possibilita di eliminarli rapidamente qualora finiscano fuori produzione o esauriti.
+
+  riflessioni implementative, flussi asincroni e scelte di design:
+  1) layout affiancato (.worker-layout):
+     ho impostato una griglia fluida su due colonne per ottimizzare il flusso operativo quotidiano.
+     sulla sinistra c'e' il form di inserimento, mentre a destra compare immediatamente l'inventario.
+     in questo modo, non appena l'operatore preme su 'Carica e Pubblica', lo script puo aggiornare
+     la lista a destra senza costringerlo a cambiare pagina o a fare un refresh manuale del browser.
+
+  2) gestione del multipart e upload delle immagini:
+     il modulo di caricamento (#add-product-form) definisce enctype="multipart/form-data".
+     questo attributo e' tassativo perche non stiamo serializzando un semplice json testuale,
+     ma inviamo al backend Flask un vero file binario (la foto dell'articolo).
+     la chiamata viene intercettata via JavaScript tramite preventDefault, viene istanziato
+     un oggetto FormData nativo e spedito con fetch all'endpoint server, che salva l'immagine
+     sul disco nella cartella statica e registra le coordinate del prodotto dentro il database MongoDB.
+     il paragrafo #prod-msg funge da barra di stato per restituire feedback visivi (verde/rosso).
+
+  3) scorrimento catalogo e fruibilita visiva:
+     la lista #catalog-inventory ha una proprieta max-height impostata a 450px combinata con overflow-y auto.
+     questo accorgimento impedisce che un elenco di decine o centinaia di referenze allunghi la pagina
+     all'infinito, lasciando il footer al suo posto e consentendo uno scroll dedicato e fluido.
+
+  4) templating Jinja2 e percorsi statici:
+     anche per questa schermata di servizio mantengo l'ereditarieta modulare tipica del progetto,
+     usando usando il comando include per navbar.html per navbar.html e footer.html.
+     per il foglio di stile globale (motoshop_prodotti.css) e lo script di interazione
+     (dashboard_lavoratore.js) passo obbligatoriamente per url_for('static', ...),
+     cosi da evitare qualsiasi inconveniente legato ai percorsi relativi del web server.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- codifica caratteri standard utf-8 e configurazione della viewport per dispositivi mobili -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Area Lavoratore - Motoshop</title>
+    <!-- foglio di stile globale unificato per l'area gestionale e il catalogo pubblico -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- navbar principale del sito inclusa tramite motore jinja2 per coerenza visiva -->
+    {% include 'navbar.html' %}
+
+    <!-- layout principale a due riquadri per inserimento dati e panoramica inventario -->
+    <main class="worker-layout">
+        <!-- COLONNA SINISTRA: Form per caricare nuovi prodotti e immagini -->
+        <div class="panel-box">
+            <h2>Aggiungi Nuovo Prodotto</h2>
+            
+            <!-- enctype="multipart/form-data" è obbligatorio quando nel form carichiamo dei file (immagini) -->
+            <form id="add-product-form" enctype="multipart/form-data">
+                <!-- campo obbligatorio per il titolo commerciale dell'articolo -->
+                <div class="form-group">
+                    <label>Nome Prodotto</label>
+                    <input type="text" id="prod-name" name="nome" placeholder="Es. Casco AGV Pista" required>
+                </div>
+                
+                <!-- categoria merceologica utilizzata dai filtri delle pagine pubbliche (caschi, giacche, guanti) -->
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <input type="text" id="prod-cat" name="categoria" placeholder="Es. caschi" required>
+                </div>
+                
+                <!-- input numerico con step centesimale per gestire con precisione i prezzi di vendita -->
+                <div class="form-group">
+                    <label>Prezzo (€)</label>
+                    <input type="number" step="0.01" id="prod-price" name="prezzo" placeholder="Es. 349.99" required>
+                </div>
+                
+                <!-- breve stringa riassuntiva visualizzata nella scheda descrittiva del prodotto -->
+                <div class="form-group">
+                    <label>Descrizione</label>
+                    <input type="text" id="prod-desc" name="desc" placeholder="Breve descrizione" required>
+                </div>
+                
+                <!-- campo input per il file immagine con formattazione scura personalizzata inline -->
+                <div class="form-group">
+                    <label>Immagine</label>
+                    <input type="file" id="prod-img-file" name="img_file" accept="image/*" required style="padding: 7px; color: white; background: #121212; border: 1px solid #444; border-radius: 8px;">
+                </div>
+                
+                <!-- pulsante di invio principale che scatena l'invio asincrono tramite FormData -->
+                <button type="submit" class="btn-buy" style="width: 100%; text-align: center; margin-top: 10px;">Carica e Pubblica</button>
+            </form>
+            
+            <!-- box di feedback dove lo script inietta l'esito dell'operazione di salvataggio -->
+            <p id="prod-msg" style="margin-top: 15px; text-align: center; font-weight: bold;"></p>
+        </div>
+
+        <!-- COLONNA DESTRA: Gestione inventario esistente -->
+        <div class="panel-box">
+            <h2>Inventario & Prodotti Attivi</h2>
+            
+            <!-- Lista dei prodotti attivi con opzione di eliminazione -->
+            <!-- il div ha scrollbar indipendente per evitare un allungamento eccessivo del layout -->
+            <div id="catalog-inventory" style="max-height: 450px; overflow-y: auto;">
+                <p style="color: #888;">Caricamento prodotti...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- footer istituzionale di chiusura pagina -->
+    {% include 'footer.html' %}
+    
+    <!-- Script che gestisce l'invio del form via FormData e la cancellazione degli articoli -->
+    <script src="{{ url_for('static', filename='js/dashboard_lavoratore.js') }}"></script>
+</body>
+</html>

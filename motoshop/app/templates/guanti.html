@@ -1,0 +1,58 @@
+<!--
+  DIARIO DI BORDO E NOTE TECNICHE - SEZIONE GUANTI MOTO (guanti.html)
+  ==========================================================================
+  questo template definisce la pagina di catalogo per il comparto guanti tecnici.
+  ricalca fedelmente l'impostazione snella già adottata per caschi.html e giacche.html:
+  la vista fornisce un'impalcatura essenziale con la testata del reparto e l'area di rendering,
+  delegando interamente il recupero dei dati da MongoDB e la costruzione delle card
+  allo script client dedicato (guanti.js) tramite chiamate asincrone.
+
+  scelte implementative e dettagli sul flusso di rendering:
+  1) architettura modulare con Jinja2:
+  navbar.html e footer.html sono inclusi tramite la direttiva di inclusione standard, 
+  evitando duplicazioni di codice strutturale e mantenendo una navigazione omogenea.
+
+  2) stato di caricamento asincrono e feedback visivo:
+     il contenitore #product-container include inizialmente un messaggio segnaposto
+     grigio ("Caricamento guanti dal database..."). Appena guanti.js porta a termine
+     la fetch verso l'API Flask, il testo provvisorio viene azzerato per lasciare spazio
+     alla griglia dinamica con foto, descrizioni, prezzi e pulsanti di acquisto.
+
+  3) gestione sicura delle risorse con url_for:
+     sia il foglio di stile globale (motoshop_prodotti.css) sia lo script operativo
+     (guanti.js) sono referenziati tramite la funzione helper url_for('static', ...),
+     garantendo che i percorsi rimangano validi indipendentemente dalla configurazione
+     delle route o da eventuali prefissi dell'ambiente di deployment.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- codifica caratteri standard utf-8 e configurazione viewport per piena reattività su smartphone -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guanti - Motoshop</title>
+    <!-- css globale condiviso con il tema scuro comune a tutte le vetrine dell'e-commerce -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- navbar unificata del sito inclusa tramite motore jinja2 -->
+    {% include 'navbar.html' %}
+
+    <!-- testata hero con titolo della sezione e sottotitolo descrittivo del reparto -->
+    <header class="catalog-hero">
+        <h1>Guanti Moto</h1>
+        <p>Guanti racing, touring e urban per la massima sensibilità e protezione.</p>
+    </header>
+
+    <!-- griglia prodotti: viene svuotata e popolata dinamicamente dallo script guanti.js -->
+    <section class="product-section" id="product-container">
+        <p style="color: #888; text-align: center; width: 100%;">Caricamento guanti dal database...</p>
+    </section>
+
+    <!-- footer condiviso con note legali e recapiti -->
+    {% include 'footer.html' %}
+
+    <!-- script client-side per fetch asincrona e filtraggio dei prodotti per la categoria guanti -->
+    <script src="{{ url_for('static', filename='js/guanti.js') }}"></script>
+</body>
+</html>

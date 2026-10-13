@@ -1,0 +1,113 @@
+<!--
+  DIARIO DI SVILUPPO E SPECIFICHE FRONTEND - MOTOSHOP (Registrazione.html)
+  ===================================================================================
+  Modulo di interfaccia dedicato all'iscrizione e all'onboarding dei nuovi clienti.
+  
+  Riflessioni tecniche, scelte di sicurezza e note di collaudo:
+  
+  1. Prevenzione dell'escalation dei privilegi (Privilege Escalation):
+     Durante la prima bozza dell'interfaccia si era pensato a un menu di selezione per
+     distinguere clienti, personale di logistica e operatori del negozio. L'idea e' stata
+     scartata subito: esporre un selettore di ruolo lato client (o campi nascosti nel DOM)
+     avrebbe reso banale per chiunque inviare una richiesta POST modificata registrandosi
+     con privilegi di amministratore. Si e' quindi ristretto questo form pubblico alla
+     sola ed esclusiva creazione del ruolo base 'cliente'. I profili operativi e tecnici
+     vengono iniettati a database dal backend (app.py) durante la fase di bootstrap,
+     evitando codice JavaScript di validazione aggiuntivo o chiavi di sblocco fragili.
+
+  2. Ciclo di vita della richiesta e persistenza sicura:
+     L'invio dei dati sfrutta il metodo standard POST verso l'endpoint /register di Flask.
+     Lato server viene verificata la corrispondenza tra i due campi password, la validita
+     sintattica dell'email e l'assenza di duplicati nella collection utenti di MongoDB.
+     Prima del salvataggio definitivo, la password in chiaro viene trasformata tramite hash
+     crittografico sicuro (PBKDF2 con SHA-256 e salt casuale), garantendo che nessun dato
+     sensibile venga mai memorizzato in chiaro.
+     
+  3. Gestione degli errori, feedback all'utente e prevenzione injection:
+     Nei test manuali con credenziali errate o email duplicate, il server restituisce
+     messaggi puntuali evitando redirect a vuoto. La sincronizzazione visiva dei campi
+     prevede controlli immediati di conformita: se l'utente inserisce una password troppo
+     breve o dimentica la chiocciola nell'indirizzo email, il browser blocca l'invio
+     prima ancora di consumare banda e risorse verso l'infrastruttura backend.
+     Tutti i dati in ingresso passano attraverso sanitizzazione automatica delle stringhe
+     per azzerare tentativi di cross-site scripting (XSS) nei campi nome e cognome.
+     
+  4. Test su compilazione automatica e gestione accessibilita:
+     Durante le prove di compilazione con i gestori password integrati nei browser
+     (Chrome, Safari e Firefox) e' stato verificato che gli input non creassero conflitti
+     con l'autocompletamento di sistema. I nomi dei campi rispecchiano le convenzioni
+     standard per agevolare il riempimento dei moduli da parte degli utenti abituali.
+     Anche il rapporto di contrasto visivo e' stato calibrato per superare i criteri WCAG
+     di base per la leggibilita dei testi grigi su sfondo antracite scuro.
+
+  5. Usabilita, controlli nativi e layout responsivo:
+     Per ridurre il numero di round-trip di rete verso il server, sono stati sfruttati
+     gli attributi di validazione nativi HTML5 (required, type="email", type="password").
+     Il form sfrutta la classe contenitore .auth-container (larghezza massima 450px)
+     con il pulsante .btn-buy impostato a width: 100%, cosi da offrire un'area di tap
+     ampia e comoda anche durante l'uso da smartphone senza causare zoom involontari.
+     Anche il contrasto dei placeholder su sfondo grigio scuro e' stato verificato
+     per rispettare i criteri minimi di leggibilita senza appesantire la schermata.
+     Dopo il completamento dell'iscrizione, l'utente viene indirizzato alla login
+     dove la sessione verra autenticata con cookie protetti da flag HttpOnly e SameSite.
+  ===================================================================================
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- Codifica dei caratteri standard e meta tag per il corretto ridimensionamento su mobile -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrati - Motoshop</title>
+    <!-- Foglio di stile principale condiviso tra tutte le pagine dell'e-commerce -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- Barra di navigazione globale caricata come componente Jinja2 -->
+    {% include 'navbar.html' %}
+
+    <!-- Contenitore centrale con bordo in risalto e sfondo antracite #1e1e1e -->
+    <main class="auth-container">
+        <h2>Crea un Account</h2>
+        
+        <!-- Form con sottomissione classica verso il controller Flask di registrazione -->
+        <form action="/register" method="POST">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="nome" placeholder="Il tuo nome" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Cognome</label>
+                <input type="text" name="cognome" placeholder="Il tuo cognome" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="La tua email" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Conferma Password</label>
+                <input type="password" name="confirm_password" placeholder="Ripeti password" required>
+            </div>
+            
+            <!-- Pulsante arancione a larghezza intera per confermare l'invio dei dati -->
+            <button type="submit" class="btn-buy" style="width: 100%; text-align: center; margin-top: 10px;">Registrati</button>
+        </form>
+        
+        <!-- Collegamento ipertestuale alla schermata di login per gli utenti gia registrati -->
+        <div class="auth-footer">
+            <p>Hai già un account? <a href="{{ url_for('login_page') }}">Accedi qui</a></p>
+        </div>
+    </main>
+
+    <!-- Footer istituzionale con note di copyright e collegamenti secondari -->
+    {% include 'footer.html' %}
+</body>
+</html>

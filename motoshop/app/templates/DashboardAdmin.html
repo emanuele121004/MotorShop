@@ -1,0 +1,123 @@
+<!--
+  DIARIO DI BORDO E NOTE DI PROGETTAZIONE - PANNELLO AMMINISTRATORE (DashboardAdmin.html)
+  ========================================================================================
+  questo template centralizza tutte le funzionalita ad alto privilegio dell'e-commerce Motoshop.
+  a differenza della schermata del lavoratore semplice (che puo soltanto caricare o cancellare merce),
+  l'amministratore deve avere sotto gli occhi sia l'anagrafica completa degli utenti registrati
+  (con la possibilita di visualizzare chi e' cliente, lavoratore o admin) sia la gestione operativa
+  dell'intero inventario di magazzino.
+
+  considerazioni tecniche, scelte architetturali e flusso dei dati:
+  1) gestione della sessione e benvenuto personalizzato:
+     per il saluto nell'header recupero la variabile direttamente dal dizionario di sessione Flask
+     usando la sintassi sicura session.get('nome', ''). in questo modo, se un utente dovesse
+     accedere a una sessione parziale o se la chiave fosse assente, non sollevo eccezioni Jinja2
+     e la pagina viene comunque renderizzata in modo pulito.
+
+  2) rendering asincrono degli utenti registrati:
+     il blocco #users-list parte volutamente con un messaggio di attesa grigio provvisorio.
+     appena scatta l'evento DOMContentLoaded, lo script dashboard_admin.js esegue una fetch asincrona
+     verso la rotta protetta /api/admin/utenti, riceve la lista dei profili dal database MongoDB
+     e genera le righe dinamicamente, permettendo di verificare gli indirizzi email e i ruoli.
+
+  3) upload multipart e gestione catalogo:
+     il form di inserimento (#add-product-form) richiede tassativamente l'attributo
+     enctype="multipart/form-data" perche non inviamo un semplice json ma un file binario vero
+     e proprio (l'anteprima fotografica dell'articolo). l'endpoint Flask riceve il multipart,
+     salva l'immagine dentro la cartella /static/img del server e scrive su Mongo il documento
+     con nome, categoria, prezzo a virgola mobile e percorso relativo del file.
+
+  4) scorrimento catalogo e pulizia layout:
+     per evitare che l'elenco degli articoli spinga il footer chilometri piu in basso,
+     ho applicato uno stile con altezza massima a 450px e scorrimento verticale (overflow-y: auto)
+     sul contenitore #catalog-inventory: cosi la vista rimane compatta anche con decine di prodotti.
+  
+  5) modularita e percorsi statici:
+     uso gli include Jinja standard per navbar.html e footer.html per coerenza grafica,
+     mentre per fogli di stile e script passo sempre da url_for('static', ...) per evitare
+     problemi con routing annidato o sottocartelle di deployment.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- codifica caratteri standard e configurazione viewport per rendering scalabile su ogni schermo -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pannello Admin - Motoshop</title>
+    <!-- foglio di stile globale condiviso con il catalogo e le dashboard utente -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- barra di navigazione principale del sito inclusa tramite motore jinja2 -->
+    {% include 'navbar.html' %}
+
+    <!-- contenitore principale con vincolo di larghezza massima a 1200px per mantenere le tabelle leggibili -->
+    <main class="admin-container" style="max-width: 1200px;">
+        <h1 style="color: #ff4d4d; margin-bottom: 10px;">Pannello di Controllo Amministratore</h1>
+        <p style="color: #aaa; margin-bottom: 30px;">Benvenuto, Admin <b>{{ session.get('nome', '') }}</b>. Da qui puoi monitorare gli utenti registrati e gestire l'intero catalogo prodotti con i privilegi completi.</p>
+
+        <!-- SEZIONE 1: GESTIONE UTENTI -->
+        <!-- box dedicato al monitoraggio di tutti i profili salvati sul database -->
+        <div class="panel-box" style="margin-bottom: 30px;">
+            <h2 style="color: #ff9900; margin-bottom: 20px; font-size: 22px; border-bottom: 1px solid #333; padding-bottom: 10px;">Utenti Registrati</h2>
+            <!-- questo div viene svuotato e ripopolato via javascript interrogando l'api backend -->
+            <div id="users-list">
+                <p style="color: #888;">Caricamento utenti in corso...</p>
+            </div>
+        </div>
+
+        <!-- SEZIONE 2: GESTIONE PRODOTTI E INVENTARIO (Funzionalità da Lavoratore) -->
+        <!-- griglia a due colonne per inserimento a sinistra ed eliminazione rapida a destra -->
+        <div class="worker-layout" style="padding: 0; max-width: 100%; margin-bottom: 20px;">
+            <!-- Colonna Sinistra: Form Aggiunta Prodotto con upload di file binario -->
+            <div class="panel-box">
+                <h2>Aggiungi Nuovo Prodotto</h2>
+                <!-- form gestito asincronamente con preventDefault nello script admin -->
+                <form id="add-product-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Nome Prodotto</label>
+                        <input type="text" id="prod-name" name="nome" placeholder="Es. Casco AGV Pista" required>
+                    </div>
+                    <!-- categoria testuale usata poi per i filtri lato client delle pagine dedicate -->
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <input type="text" id="prod-cat" name="categoria" placeholder="Es. caschi" required>
+                    </div>
+                    <!-- input numerico con step a due decimali per gestire i centesimi di euro -->
+                    <div class="form-group">
+                        <label>Prezzo (€)</label>
+                        <input type="number" step="0.01" id="prod-price" name="prezzo" placeholder="Es. 349.99" required>
+                    </div>
+                    <!-- testo descrittivo sintetico visualizzato nella pagina di dettaglio prodotto -->
+                    <div class="form-group">
+                        <label>Descrizione</label>
+                        <input type="text" id="prod-desc" name="desc" placeholder="Breve descrizione" required>
+                    </div>
+                    <!-- selettore del file immagine con styling scuro allineato alla palette del sito -->
+                    <div class="form-group">
+                        <label>Immagine</label>
+                        <input type="file" id="prod-img-file" name="img_file" accept="image/*" required style="padding: 7px; color: white; background: #121212; border: 1px solid #444; border-radius: 8px;">
+                    </div>
+                    <!-- tasto di submit ad ampiezza piena per immediata usabilita -->
+                    <button type="submit" class="btn-buy" style="width: 100%; text-align: center; margin-top: 10px;">Carica e Pubblica</button>
+                </form>
+            </div>
+
+            <!-- Colonna Destra: Inventario e Cancellazione -->
+            <div class="panel-box">
+                <h2>Inventario & Prodotti Attivi</h2>
+                <!-- contenitore con scrollbar verticale per evitare che la lista allunghi la schermata -->
+                <div id="catalog-inventory" style="max-height: 450px; overflow-y: auto;">
+                    <p style="color: #888;">Caricamento prodotti...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- footer condiviso con informazioni di copyright e link secondari -->
+    {% include 'footer.html' %}
+
+    <!-- Script unificato dell'Admin per gestire chiamate API ed eventi DOM -->
+    <script src="{{ url_for('static', filename='js/dashboard_admin.js') }}"></script>
+</body>
+</html>

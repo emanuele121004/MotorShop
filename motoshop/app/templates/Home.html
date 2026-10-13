@@ -1,0 +1,72 @@
+<!--
+  DIARIO DI SVILUPPO E NOTE STRUTTURALI - HOMEPAGE PORTALE (Home.html)
+  ==========================================================================
+  questo template definisce la pagina di atterraggio principale dell'e-commerce Motoshop.
+  essendo il biglietto da visita dell'applicazione, il focus qui e' su immediatezza
+  e navigabilita verso i reparti chiave, mantenendo un caricamento fulmineo senza
+  chiamate api pesanti o rendering complessi al primo avvio.
+
+  considerazioni di layout e scelte implementative:
+  1) sezione hero e call to action:
+     la parte alta cattura subito l'utente con un claim mirato per motociclisti
+     e un pulsante (.btn-buy) ad alta visibilita che reindirizza al catalogo completo
+     (CatalogoUniversale.html) attraverso la funzione di routing serve_page di Flask.
+
+  2) vetrina rapida delle categorie:
+     sotto la hero e' collocata la sezione .brands-section che funge da menu visivo
+     suddiviso in tre schede ad accesso rapido: caschi, giacche e guanti.
+     ogni card (.brand-card) e' un elemento interattivo cliccabile con feedback hover,
+     permettendo all'utente di raggiungere il reparto specifico in un solo click.
+
+  3) architettura modulare jinja2:
+    la testata e il fondo pagina sono gestiti tramite i blocchi di inclusione standard
+     (navbar.html e footer.html), mentre per il foglio di stile motoshop_prodotti.css
+     si sfrutta url_for('static', ...) per garantire la risoluzione assoluta del percorso.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- codifica caratteri standard e settaggio viewport per resa ottimale su dispositivi mobili -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Motoshop</title>
+    <!-- foglio di stile globale del portale con palette scura coordinata -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- inclusione della navbar globale con carrello e stato account -->
+    {% include 'navbar.html' %}
+
+    <!-- Sezione Hero di benvenuto con call-to-action principale verso il catalogo generale -->
+    <section class="hero">
+        <h1>Benvenuto su Motoshop</h1>
+        <p>Abbigliamento tecnico, caschi e accessori racing per veri centauri.</p>
+        <a href="{{ url_for('serve_page', filename='CatalogoUniversale.html') }}" class="btn-buy">Scopri il Catalogo</a>
+    </section>
+
+    <!-- Vetrina delle categorie principali: caschi, giacche e guanti moto -->
+    <section class="brands-section">
+        <h2>Le Nostre Categorie Principali</h2>
+        <div class="brands-container">
+            <!-- card di accesso rapido al reparto caschi -->
+            <a href="{{ url_for('serve_page', filename='caschi.html') }}" class="brand-card">
+                <h3>Caschi</h3>
+                <p>Integrali, modulari e jet</p>
+            </a>
+            <!-- card di accesso rapido al catalogo giacche moto -->
+            <a href="{{ url_for('serve_page', filename='giacche.html') }}" class="brand-card">
+                <h3>Giacche</h3>
+                <p>Pelle e tessuto tecnico</p>
+            </a>
+            <!-- card di accesso rapido alla sezione guanti tecnici -->
+            <a href="{{ url_for('serve_page', filename='guanti.html') }}" class="brand-card">
+                <h3>Guanti</h3>
+                <p>Racing, touring e urban</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- footer di chiusura condiviso -->
+    {% include 'footer.html' %}
+</body>
+</html>

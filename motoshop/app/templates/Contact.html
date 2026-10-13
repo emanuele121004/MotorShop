@@ -1,0 +1,69 @@
+<!--
+  DIARIO DI SVILUPPO E SPECIFICHE FRONTEND - MOTOSHOP (Contact.html)
+  ===================================================================================
+  Modulo informativo per il canale di assistenza clienti e supporto post-vendita.
+  
+  Riflessioni tecniche, usabilita e scelte architetturali:
+  
+  1. Snellezza del flusso di contatto vs form dedicato:
+     Inizialmente si era valutata l'integrazione di un form di contatto con campi input
+     e textarea per inviare ticket al backend Flask. Tuttavia, l'apertura di un form
+     pubblico senza meccanismi di reCAPTCHA o rate limiting avrebbe esposto il server a
+     spam continuo e sovraccarico di richieste fittizie nel database. Si e' optato
+     quindi per un link diretto mailto protocol-native: un approccio minimale ma solido,
+     che delega la composizione del messaggio al client di posta preferito dell'utente
+     (Gmail, Outlook, Apple Mail), azzerando la manutenzione di endpoint SMTP dedicati.
+
+  2. Gestione del layout verticale e contrasto visivo:
+     Trattandosi di una schermata a basso contenuto testuale, il rischio comune e' che
+     il footer salga verso il centro della viewport su schermi desktop ampi. Per evitare
+     questo difetto grafico senza dover applicare posizionamenti assoluti o altezze fisse,
+     al tag <main> e' stata assegnata l'istruzione inline flex: 1. In combinazione con il
+     display: flex e min-height: 100vh dichiarati sul <body> nel file CSS principale,
+     il footer viene spinto con naturalezza a fondo pagina in qualsiasi risoluzione.
+     Il contenitore centrale .contact-container sfrutta la larghezza estesa a 600px
+     per mantenere il paragrafo descrittivo su righe ariose e ben spaziate.
+
+  3. Accessibilita mobile e interazione:
+     Il pulsante di contatto (.btn-buy) e' dimensionato con un padding generoso (15px 30px)
+     e font a 18px per garantire un'area di interazione agevole su display touch,
+     rendendo immediata l'attivazione della composizione email da smartphone.
+  ===================================================================================
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contattaci - Motoshop</title>
+    <!-- Ricolleghiamo il tuo foglio di stile per riavere il tema scuro -->
+    <link rel="stylesheet" href="/static/css/motoshop_prodotti.css">
+</head>
+<body>
+
+    <!-- Richiama la barra di navigazione uguale per tutto il sito -->
+    {% include 'navbar.html' %}
+
+    <!-- Il main con flex: 1 spinge il footer in basso anche se la pagina è mezza vuota -->
+    <main style="flex: 1;">
+        <div class="contact-container">
+            <h2>Contattaci</h2>
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="color: #ccc; font-size: 16px; line-height: 1.8; margin-bottom: 30px;">
+                    Per qualsiasi problema, richiesta di assistenza sugli ordini o per avviare una procedura di reso, ti preghiamo di scriverci direttamente al nostro indirizzo email dedicato. <br>
+                    Il nostro team ti risponderà nel minor tempo possibile.
+                </p>
+                
+                <!-- Bottone che apre l'app della posta -->
+                <a href="mailto:assistenzamotorshop@gmail.com" class="btn-buy" style="font-size: 18px; padding: 15px 30px;">
+                    ✉️ assistenzamotorshop@gmail.com
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Richiama il piè di pagina -->
+    {% include 'footer.html' %}
+
+</body>
+</html>

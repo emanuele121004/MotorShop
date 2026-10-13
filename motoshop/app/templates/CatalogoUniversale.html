@@ -1,0 +1,65 @@
+<!--
+  DIARIO DI BORDO - HUB GENERALE CATEGORIE (CatalogoUniversale.html)
+  ==========================================================================
+  questo template funge da directory centrale per lo smistamento dei reparti.
+  invece di mostrare subito centinaia di articoli mescolati in un feed unico,
+  l'utente atterra su questo indice visivo dove puo scegliere la macro-sezione
+  di suo interesse (caschi, giacche o guanti da moto) prima di filtrare i pezzi.
+
+  appunti tecnici sull'integrazione e architettura template:
+  - mantenere l'eredità modulare tipica del progetto utilizzando la direttiva di inclusione
+    per navbar.html e footer.html, cosi l'header rimane uniforme su tutto l'e-commerce.
+  - il layout a griglia (.categories-grid) sfrutta link a card intere (.category-card)
+    in modo che l'intera area sia cliccabile da smartphone senza dover centrare per
+    forza il minuscolo pulsante di testo in basso.
+  - per i percorsi interni dei reparti passo sempre attraverso la funzione url_for
+    invocando l'endpoint flask serve_page (caschi.html, giacche.html, guanti.html),
+    evitando path relativi rigidi che si rompono quando cambiano i prefissi delle route.
+  - nessun javascript inline o fetch asincrona pesante qui: la pagina e' volutamente
+    statica e ultra-leggera per garantire un caricamento immediato da qualsiasi connessione.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- parametri base per rendering mobile e codifica caratteri utf-8 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogo - Motoshop</title>
+    <!-- Collego il foglio di stile globale che gestisce tutto il look del sito -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- Includo la navbar condivisa per non duplicare codice inutile -->
+    {% include 'navbar.html' %}
+
+    <!-- Sezione di intestazione del catalogo con testo introduttivo -->
+    <section class="catalog-hero">
+        <h1>Catalogo Ufficiale</h1>
+        <p>Seleziona il reparto di tuo interesse per visualizzare l'attrezzatura tecnica.</p>
+    </section>
+
+    <!-- Griglia principale che contiene i reparti (Caschi, Giacche, Guanti) -->
+    <main class="categories-grid">
+        <a href="{{ url_for('serve_page', filename='caschi.html') }}" class="category-card">
+            <h3>Caschi Moto</h3>
+            <p>Sicurezza e protezione al top per la pista e la strada.</p>
+            <span class="btn-buy">Esplora</span>
+        </a>
+        
+        <a href="{{ url_for('serve_page', filename='giacche.html') }}" class="category-card">
+            <h3>Giacche Moto</h3>
+            <p>Stile, comfort e materiali anti-abrasione certificati.</p>
+            <span class="btn-buy">Esplora</span>
+        </a>
+        
+        <a href="{{ url_for('serve_page', filename='guanti.html') }}" class="category-card">
+            <h3>Guanti Moto</h3>
+            <p>Sensibilità di guida e protezioni rigide in carbonio.</p>
+            <span class="btn-buy">Esplora</span>
+        </a>
+    </main>
+
+    <!-- Includo il footer standard del portale -->
+    {% include 'footer.html' %}
+</body>
+</html>

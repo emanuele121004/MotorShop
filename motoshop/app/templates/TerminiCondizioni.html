@@ -1,0 +1,106 @@
+<!--
+  DIARIO DI BORDO, NOTE LEGALI E ARCHITETTURA CONTRATTUALE (TerminiCondizioni.html)
+  ===================================================================================
+  questo documento definisce la cornice contrattuale e informativa per l'e-commerce Motoshop.
+  a differenza delle pagine interattive dell'applicazione (dove il carico principale e'
+  sostenuto da manipolazioni DOM in Javascript e chiamate asincrone fetch), qui la priorita
+  e' garantire piena trasparenza informativa verso l'acquirente, definendo con precisione
+  i confini operativi relativi a catalogo, spedizioni corriere, resi e trattamento dei dati.
+
+  riflessioni ingegneristiche, adempimenti normativi e scelte di progettazione:
+  1) coerenza visiva e contenimento del layout:
+     l'intero corpo testuale e' incapsulato all'interno del nodo semantico <main class="terms-container">.
+     la classe terms-container definita nel foglio di stile globale (motoshop_prodotti.css)
+     imposta una larghezza massima controllata (max-width con margini laterali automatici)
+     e un'interlinea confortevole, evitando che le righe di testo si allunghino eccessivamente
+     sugli schermi widescreen ad alta risoluzione compromettendo la leggibilita.
+     durante i test preliminari su display ultra-wide a 1440p e 4K, senza questo vincolo di contenimento
+     le righe superavano gli 80 caratteri per riga, rendendo la scansione visiva faticosa
+     per l'utente finale che cercava rapidamente i tempi di resa o le condizioni di reso.
+
+  2) allineamento alla normativa sul commercio elettronico (B2C) e gestione scorte:
+     - articolo 1 (disponibilita e trasparenza economica): chiarisce il meccanismo di presa
+       in carico dell'ordine subordinato alla reale disponibilita a magazzino (sincronizzata
+       con la collection 'prodotti' su MongoDB) e definisce la valuta di regolamento in Euro
+       con scorporo/inclusione dell'IVA italiana vigente per evitare ambiguita nel carrello.
+       abbiamo voluto precisare la dipendenza dalla conferma di pagamento perche con i sistemi
+       asincroni o i bonifici possono intercorrere finestre di disallineamento inventariale.
+     - articolo 2 (logistica e tempi di affidamento al vettore): formalizza i tempi standard
+       di instradamento della merce (indicativamente stimati tra 24 e 72 ore lavorative),
+       distinguendo la fase di elaborazione interna dall'effettivo transito tramite corriere.
+       in questo modo si evitano reclami dovuti a ritardi operativi dei vettori nei periodi di picco.
+     - articolo 3 (diritto di ripensamento a 14 giorni): recepisce la direttiva europea a tutela
+       del consumatore, fissando la finestra temporale per il recesso e vincolando il rimborso
+       all'integrita dei dispositivi di protezione individuale e dei capi moto (scatola intatta).
+       trattandosi di materiale omologato per la sicurezza su strada (caschi e giacche con protezioni CE),
+       il vincolo dell'integrita e' particolarmente rigoroso per salvaguardare la sicurezza dei futuri acquirenti.
+     - articolo 4 (gestione e finalita del dato anagrafico): sintetizza il perimetro di utilizzo
+       dei dati raccolti (esclusivamente finalizzati alla fatturazione e alla consegna),
+       garantendo la totale assenza di cessione a soggetti terzi non legati alla transazione.
+
+  3) architettura modulare Jinja2 e percorsi statici dinamici:
+     come per tutte le viste della piattaforma, l'inclusione di navbar.html e footer.html
+    avviene tramite la direttiva di inclusione standard, mantenendo un solo punto di verità per
+     l'aggiornamento dei menu. il link agli stili sfrutta l'helper url_for('static', ...)
+     per prevenire problemi di path resolution in caso di reverse proxy o sotto-cartelle.
+     inoltre, abbiamo verificato che l'inclusione del footer parziale utilizzi correttamente
+     il margin-top: auto all'interno del flusso flexbox verticale del body, evitando che
+     in presenza di pagine informative corte o schermi ad altissima risoluzione il footer
+     si sollevi a mezza altezza lasciando uno spazio vuoto antiestetico sul fondo.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- codifica caratteri standard universale utf-8 per visualizzare correttamente lettere accentate e simboli -->
+    <meta charset="UTF-8">
+    <!-- direttiva viewport essenziale per impedire lo zoom automatico e garantire leggibilita su smartphone -->
+    <!-- assicura il corretto ridimensionamento dell'interfaccia eliminando lo scorrimento orizzontale parassita -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termini e Condizioni - Motoshop</title>
+    <!-- foglio di stile globale unificato con la tavolozza scura comune a tutti i cataloghi del negozio -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- Navbar unificata del sito inclusa dinamicamente tramite motore jinja2 -->
+    <!-- include i percorsi di sessione utente e lo stato dell'autenticazione -->
+    {% include 'navbar.html' %}
+
+    <!-- Contenitore testuale con le condizioni di vendita -->
+    <!-- l'elemento semantico main racchiude l'intero blocco contrattuale e ne standardizza il padding interno -->
+    <main class="terms-container">
+        <!-- intestazione primaria della pagina con titolo principale del documento legale -->
+        <h1>Termini e Condizioni d'Uso</h1>
+        <!-- paragrafo introduttivo di benvenuto e accettazione tacita delle condizioni d'uso della piattaforma -->
+        <!-- serve da premessa vincolante per chi naviga il portale o formalizza acquisti carrello -->
+        <p>Benvenuto su Motoshop. Utilizzando il nostro sito web e acquistando i nostri prodotti, accetti i seguenti termini e condizioni. Ti invitiamo a leggerli attentamente.</p>
+        
+        <!-- clausola 1: condizioni generali di vendita, regime dei prezzi esposti ed evasione ordini -->
+        <h3>1. Condizioni generali di vendita</h3>
+        <!-- dettaglio su disponibilita reale dei prodotti a magazzino, validazione pagamento e imposte incluse -->
+        <!-- specifica che l'ordine si perfeziona solo con l'effettivo accredito dell'importo pattuito -->
+        <p>Tutti gli ordini effettuati su Motoshop sono soggetti alla disponibilità dei prodotti e alla conferma del pagamento. I prezzi indicati sul catalogo sono espressi in Euro (€) e sono comprensivi di IVA.</p>
+        
+        <!-- clausola 2: logistica, copertura territoriale nazionale, corrieri convenzionati e stime di recapito -->
+        <h3>2. Spedizioni e Consegne</h3>
+        <!-- specifica sulle tempistiche operative calcolate in ore lavorative successive al riscontro contabile -->
+        <!-- le tempistiche si intendono stimate per le principali direttrici di traffico sul territorio nazionale -->
+        <p>Motoshop effettua spedizioni in tutta Italia tramite corriere espresso. I tempi di consegna stimati variano da 24 a 72 ore lavorative a partire dalla ricezione del pagamento.</p>
+        
+        <!-- clausola 3: diritto di recesso a norma di legge a favore del consumatore finale -->
+        <h3>3. Diritto di Recesso</h3>
+        <!-- periodo di recesso di 14 giorni solari con clausola vincolante sull'integrita della merce e confezione -->
+        <!-- il vincolo sui sigilli intatti e' fondamentale per evitare resi di caschi che abbiano subito impatti occulti -->
+        <p>Il cliente ha il diritto di recedere dall'acquisto entro 14 giorni dalla ricezione della merce, a condizione che i prodotti siano integri, non usati e nella confezione originale.</p>
+        
+        <!-- clausola 4: conformita normativa per il trattamento dei dati personali e riservatezza -->
+        <h3>4. Privacy e Protezione dei Dati</h3>
+        <!-- impegno formale alla salvaguardia dei recapiti anagrafici raccolti esclusivamente per il checkout -->
+        <!-- i dati di navigazione e le informazioni personali sono gestiti secondo i dettami del regolamento privacy -->
+        <p>I dati personali raccolti al momento della registrazione o dell'acquisto vengono trattati nel pieno rispetto della normativa vigente sulla privacy per garantire la sicurezza delle transazioni.</p>
+    </main>
+
+    <!-- Footer standard condiviso con i dati aziendali, copyright e chiusura pagina -->
+    <!-- spinto in fondo al documento dal layout a colonna flexbox implementato sul body -->
+    {% include 'footer.html' %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!--
+  DIARIO DI BORDO - GESTIONE CARRELLO ACQUISTI (carrello.html)
+  ==========================================================================
+  questo template rappresenta la schermata finale di riepilogo prima del checkout.
+  l'idea di base e' mantenere il markup html il piu snello e pulito possibile,
+  delegando l'intero rendering dinamico degli articoli al codice client-side
+  scritto in carrello.js, che va a pescare l'array degli ordini dal localStorage.
+
+  scelte di progettazione e integrazione Flask/Jinja:
+  - inclusione dei blocchi riutilizzabili navbar.html e footer.html tramite la
+    sintassi standard di Jinja2, evitando ripetizioni di codice e garantendo coerenza grafica.
+  - mantenimento dei due contenitori target vuoti nel body:
+    1) #cart-items: ospita la lista delle card con foto, taglia, prezzo e selettore quantita;
+    2) #cart-summary: contiene il calcolo del subtotale, le spese di spedizione
+       e il pulsante finale per inviare l'ordine alla rotta POST del server.
+  - utilizzo rigoroso della funzione url_for sia per il file di stile motoshop_prodotti.css
+    che per lo script carrello.js, per prevenire problemi di path errati su rotte annidate.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- meta tag standard per codifica utf-8 e responsive viewport su smartphone -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrello - Motoshop</title>
+    <!-- foglio di stile dedicato con tema scuro per catalogo e carrello -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- Navbar condivisa del portale caricata via jinja -->
+    {% include 'navbar.html' %}
+    
+    <!-- Contenitore principale del carrello con layout responsive -->
+    <main class="cart-container">
+        <h1>Il tuo carrello</h1>
+        
+        <!-- Lista dei prodotti aggiunti (generata dinamicamente dal file JS leggendo lo storage) -->
+        <div id="cart-items"></div>
+        
+        <!-- Totale spesa complessivo e tasto di conferma checkout -->
+        <div class="cart-summary" id="cart-summary"></div>
+    </main>
+
+    <!-- Footer istituzionale con contatti e link informativi -->
+    {% include 'footer.html' %}
+
+    <!-- Script che gestisce la lettura dal localStorage e la chiamata API per l'ordine -->
+    <script src="{{ url_for('static', filename='js/carrello.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,689 @@
+/*
+  RELAZIONE TECNICA E SCELTE DI LAYOUT FRONTEND - MOTOSHOP
+  File sorgente: motoshop_prodotti.css
+  ========================================================================================
+
+  1. PALETTE E CONTRASTO
+  Il layout del portale Motoshop e' impostato su una Dark Mode pensata per il settore moto.
+  Per evitare che il nero puro (#000000) crei un contrasto troppo staccato e faticoso da
+  leggere sui testi lunghi, e' stato scelto come sfondo generale il grigio scurissimo #121212.
+  I blocchi sollevati dalla pagina (schede prodotti, box dei form di login, carrello e
+  aree del profilo) adottano invece il tono #1e1e1e. In questo modo si ottiene una divisione
+  dei volumi nitida senza appesantire la grafica con ombreggiature complesse.
+  
+  Colori primari di accento:
+  - Arancione (#ff9900): usato per i prezzi, i pulsanti di acquisto (.btn-buy), i titoli
+    delle sezioni e gli stati di hover sui collegamenti della barra in alto.
+  - Rosso vivo (#ff4d4d): dedicato agli elementi di attenzione immediata, come il comando
+    di cancellazione dell'articolo dal carrello (.btn-remove), i bordi delle notifiche di
+    successo e i badge identificativi per i profili con privilegi di amministratore.
+
+  2. NORMALIZZAZIONE DEL BOX MODEL
+  La prima regola del foglio applica il reset universale tramite asterisco (*), con la
+  proprieta box-sizing: border-box. Senza questa impostazione, i campi input e le textarea
+  a cui viene assegnata una larghezza pari al 100% finirebbero per debordare a destra di circa
+  20-30 pixel per via del padding interno e dello spessore dei bordi, rompendo l'allineamento.
+
+  3. GESTIONE DEI FLUSSI: FLEXBOX E CSS GRID
+  La disposizione degli elementi adotta una combinazione mirata:
+  - Flexbox e' utilizzato sulle strutture lineari orizzontali. Nella barra di navigazione
+    in alto (.navbar), justify-content: space-between distanzia il logo a sinistra dai link
+    a destra senza usare regole di float. Nello stesso modo, le righe del carrello (.cart-item)
+    usano flexbox per tenere la miniatura a sinistra, le descrizioni con flex: 1 al centro e
+    il tasto rosso di cancellazione agganciato stabilmente a destra.
+  - CSS Grid gestisce invece le viste bidimensionali. Il catalogo (.product-section) sfrutta
+    repeat(auto-fill, minmax(280px, 1fr)): il browser calcola da solo il numero di card che
+    possono entrare in riga garantendo una larghezza minima di 280 pixel. Questo evita la
+    scrittura di decine di media query per ogni variazione di ampiezza dello schermo.
+
+  4. CONTRASTO IMMAGINI E BREAKPOINT MOBILE
+  Nel carrello e nel catalogo, molti marchi e foto di caschi con trasparenza scura risultavano
+  invisibili contro lo sfondo grigio. Per risolvere il bug visivo e' stato inserito uno sfondo
+  bianco fisso (#ffffff) con bordo arrotondato dentro i riquadri delle immagini (80x80 pixel
+  nel carrello e 220px nel catalogo).
+  Il responsive e' gestito da una media query fissata a 850px: sotto questa soglia le griglie
+  a due colonne (profilo e dashboard) collassano su una sola colonna verticale, salvaguardando
+  la dimensione minima dei caratteri e l'usabilita sui dispositivi touchscreen.
+  ========================================================================================
+*/
+
+* {
+    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #121212;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #1e1e1e;
+    border-bottom: 2px solid #333;
+}
+
+.navbar .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff9900;
+    text-transform: uppercase;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #ff9900;
+}
+
+.btn-buy {
+    background-color: #ff9900;
+    color: #121212;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-buy:hover {
+    background-color: #e68a00;
+}
+
+.hero, .catalog-hero {
+    text-align: center;
+    padding: 100px 20px;
+    background: linear-gradient(135deg, #1e1e1e, #121212);
+    border-bottom: 2px solid #ff4d4d;
+}
+
+.catalog-hero {
+    padding: 50px 20px;
+    border-bottom: none;
+    background: transparent;
+}
+
+.hero h1, .catalog-hero h1 {
+    font-size: 48px;
+    color: #ff9900;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+.hero p, .catalog-hero p {
+    font-size: 20px;
+    color: #ccc;
+    margin-bottom: 30px;
+}
+
+.brands-section {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.brands-section h2 {
+    font-size: 28px;
+    color: #fff;
+    margin-bottom: 30px;
+}
+
+.brands-container, .categories-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap; 
+    padding: 20px 40px;
+}
+
+.brand-card, .category-card {
+    background-color: #1e1e1e;
+    border: 2px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    width: 280px;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.brand-card:hover, .category-card:hover {
+    transform: translateY(-8px); 
+    border-color: #ff4d4d;
+    box-shadow: 0 15px 30px rgba(255, 77, 77, 0.2);
+}
+
+.brand-card h3, .category-card h3 {
+    font-size: 22px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.brand-card p, .category-card p {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.cart-container {
+    max-width: 900px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #333;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #121212;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
+}
+
+.cart-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain; 
+    border-radius: 8px;
+    background: white;
+    padding: 5px;
+}
+
+.cart-details {
+    flex: 1;
+    margin-left: 20px;
+}
+
+.cart-details h3 {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.cart-details p {
+    color: #ff9900;
+    font-weight: bold;
+}
+
+.btn-remove {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-remove:hover {
+    background-color: #cc0000;
+}
+
+.cart-summary {
+    margin-top: 30px;
+    text-align: right;
+    border-top: 2px solid #333;
+    padding-top: 20px;
+}
+
+.cart-summary h2 {
+    color: #ff9900;
+    margin-bottom: 20px;
+}
+
+.auth-container, .contact-container {
+    max-width: 450px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    padding: 40px;
+    border-radius: 15px;
+    border: 2px solid #333;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.contact-container {
+    max-width: 600px; 
+}
+
+.auth-container h2, .contact-container h2 {
+    text-align: center;
+    color: #ff9900;
+    margin-bottom: 25px;
+    font-size: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-size: 14px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background-color: #121212;
+    color: white;
+    font-size: 16px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    height: 120px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #aaa;
+    font-size: 14px;
+}
+
+.auth-footer a {
+    color: #ff9900;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.terms-container {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    padding: 40px;
+    border-radius: 15px;
+    border: 2px solid #333;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    color: #ccc;
+    line-height: 1.6; 
+}
+
+.terms-container h1 {
+    color: #ff9900;
+    margin-bottom: 20px;
+    font-size: 32px;
+    text-align: center;
+}
+
+.terms-container h3 {
+    color: #fff;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.terms-container p {
+    margin-bottom: 15px;
+}
+
+.success-container {
+    text-align: center;
+    margin: 80px auto;
+    background-color: #1e1e1e;
+    padding: 40px;
+    border-radius: 15px;
+    max-width: 600px;
+    border: 2px solid #ff4d4d;
+    box-shadow: 0 10px 25px rgba(255, 77, 77, 0.2);
+}
+
+.success-container img {
+    width: 250px;
+    border-radius: 10px;
+    margin: 20px 0;
+    background-color: white;
+    padding: 10px;
+}
+
+.btn-secondary {
+    background: #333333;
+    color: white;
+    margin-left: 10px;
+}
+
+.btn-secondary:hover {
+    background: #555555;
+    box-shadow: none;
+    color: white;
+}
+
+.profile-layout {
+    max-width: 1100px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 30px;
+    padding: 0 20px;
+}
+
+.profile-sidebar {
+    background-color: #1e1e1e;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #333;
+    text-align: center;
+    height: fit-content; 
+}
+
+.profile-sidebar h2 {
+    color: #fff;
+    font-size: 20px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.profile-sidebar p {
+    color: #ff9900;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.profile-content {
+    background-color: #1e1e1e;
+    padding: 35px;
+    border-radius: 15px;
+    border: 2px solid #333;
+}
+
+.profile-content h2 {
+    color: #ff9900;
+    font-size: 24px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.order-card {
+    background-color: #121212;
+    padding: 15px 20px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-info h4 {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.order-info p {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.order-price {
+    text-align: right;
+}
+
+.order-price span {
+    display: block;
+    color: #ff9900;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.order-price small {
+    color: #888;
+    font-size: 12px;
+}
+
+.worker-layout {
+    max-width: 1200px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 30px;
+    padding: 0 20px;
+}
+
+.panel-box {
+    background-color: #1e1e1e;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #333;
+}
+
+.panel-box h2 {
+    color: #ff9900;
+    margin-bottom: 20px;
+    font-size: 22px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.admin-container {
+    max-width: 1000px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    padding: 40px;
+    border-radius: 15px;
+    border: 2px solid #ff4d4d;
+    box-shadow: 0 10px 25px rgba(255, 77, 77, 0.2);
+}
+
+.user-card {
+    background-color: #121212;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #333;
+}
+
+.role-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.role-admin { background-color: #ff4d4d; color: white; }
+.role-lavoratore { background-color: #ff9900; color: black; }
+.role-cliente { background-color: #333; color: white; }
+
+@media(max-width: 850px) {
+    .profile-layout, .worker-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-container {
+        flex-direction: column;
+        padding: 20px;
+    }
+    
+    .detail-image img {
+        width: 100%;
+        height: auto;
+    }
+}
+
+.product-section {
+    max-width: 1200px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 0 20px;
+}
+
+.card {
+    background-color: #1e1e1e;
+    border: 2px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    border-color: #ff9900;
+    box-shadow: 0 15px 30px rgba(255, 153, 0, 0.15);
+}
+
+.card img {
+    max-width: 100%; 
+    width: auto; 
+    height: 220px; 
+    object-fit: contain; 
+    background-color: #ffffff; 
+    border-radius: 8px;
+    margin: 0 auto; 
+    display: block; 
+    padding: 10px; 
+}
+
+.card h3 {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 10px;
+    margin-top: 15px;
+}
+
+.card .price {
+    font-size: 22px;
+    color: #ff9900;
+    font-weight: bold;
+    display: block;
+    margin: 15px 0;
+}
+
+.detail-container {
+    max-width: 1000px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    padding: 40px;
+    border-radius: 20px;
+    border: 2px solid #333;
+    display: flex;
+    gap: 50px;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.detail-image {
+    background-color: #121212;
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 380px;
+}
+
+.detail-image img {
+    max-width: 100%;
+    width: auto;
+    height: 340px;
+    object-fit: contain; 
+    border-radius: 10px;
+    background: #fff;
+    padding: 10px;
+    margin: 0 auto;
+    display: block;
+}
+
+.detail-info {
+    flex: 1;
+}
+
+.detail-info h1 {
+    font-size: 32px;
+    color: #fff;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.detail-info .price {
+    font-size: 28px;
+    color: #ff9900;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.detail-info p {
+    color: #bbb;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.size-selector {
+    margin-bottom: 30px;
+}
+
+.size-selector label {
+    display: block;
+    color: #aaa;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.size-selector select {
+    padding: 12px 15px;
+    border-radius: 8px;
+    background: #121212;
+    color: white;
+    border: 1px solid #444;
+    width: 180px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.size-selector select:focus {
+    border-color: #ff9900;
+    outline: none;
+}

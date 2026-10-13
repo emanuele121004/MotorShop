@@ -1,0 +1,57 @@
+<!--
+  DIARIO DI BORDO E NOTE DI SVILUPPO - SCHEDA SINGOLO ARTICOLO (Dettaglio_prodotto.html)
+  ========================================================================================
+  questo template gestisce la schermata di dettaglio per qualsiasi articolo dell'e-commerce
+  (che si tratti di un casco, di una giacca tecnica o di guanti da moto).
+  invece di predisporre decine di route statiche o generare il markup dell'articolo
+  direttamente lato server con Jinja2, ho optato per un'architettura snella e asincrona:
+  la pagina fornisce una cornice scheletrica minimale e delega l'intero montaggio della scheda
+  al file client-side dedicato (dettaglio_prodotto.js).
+
+  dettagli tecnici di funzionamento e integrazione:
+  1) routing e parametri url:
+     quando l'utente clicca su un prodotto dal catalogo, atterra qui con una query string
+     (ad esempio ?id=... oppure con i dati passati come parametri). lo script JS estrae
+     questi valori usando URLSearchParams, interroga l'endpoint Flask /api/prodotti o pesca
+     le informazioni necessarie e popola dinamicamente il contenitore #product-detail.
+
+  2) stato di caricamento provvisorio:
+     all'interno del div principale e' presente un paragrafo grigio di attesa centrato.
+     questo garantisce un feedback visivo immediato anche su connessioni lente prima che
+     lo script abbia completato il parsing e iniettato le immagini ad alta risoluzione,
+     il selettore taglie, la descrizione e il pulsante per aggiungere al carrello.
+
+  3) ereditarieta e percorsi protetti:
+     mantenuta la consueta inclusione di navbar.html e footer.html tramite la direttiva di inclusione standard
+     per non duplicare blocchi strutturali. tutti gli asset statici (css e js) passano
+     per la funzione url_for('static', ...) per prevenire problemi di percorsi relativi.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- codifica caratteri standard utf-8 e configurazione viewport per rendering su smartphone -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dettaglio Prodotto - Motoshop</title>
+    <!-- Foglio di stile globale unificato per coerenza cromatica con cataloghi e carrello -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- Navbar condivisa del sito inclusa tramite il motore jinja2 -->
+    {% include 'navbar.html' %}
+
+    <!-- Contenitore principale dei dettagli con classe layout flessibile -->
+    <main class="container">
+        <!-- questo contenitore viene interamente sovrascritto dal DOM generato da JS -->
+        <div class="detail-container" id="product-detail">
+            <p style="color: #888; text-align: center; width: 100%;">Caricamento dettagli prodotto in corso...</p>
+        </div>
+    </main>
+
+    <!-- Footer standard con note legali e recapiti -->
+    {% include 'footer.html' %}
+
+    <!-- Script JavaScript che recupera l'ID dall'URL e compila la pagina dinamicamente -->
+    <script src="{{ url_for('static', filename='js/dettaglio_prodotto.js') }}"></script>
+</body>
+</html>

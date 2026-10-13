@@ -1,0 +1,57 @@
+<!--
+  DIARIO DI BORDO E APPUNTI TECNICI - SEZIONE GIACCHE MOTO (giacche.html)
+  ==========================================================================
+  questo template definisce la pagina di catalogo dedicata al reparto giacche.
+  in linea con l'architettura adottata per le altre categorie (caschi e guanti),
+  il server Flask non si occupa di renderizzare staticamente l'elenco degli articoli:
+  fornisce invece la struttura scheletrica con testata e contenitore vuoto,
+  delegando il fetch asincrono e la creazione del DOM allo script client giacche.js.
+
+  scelte implementative e dettagli di integrazione:
+  1) modularita del layout:
+     inclusione pulita di navbar.html e footer.html tramite la direttiva di include
+     di Jinja2, preservando coerenza visiva e facilità di manutenzione su tutto il sito.
+
+  2) rendering asincrono e feedback utente:
+     la sezione #product-container contiene inizialmente un paragrafo informativo grigio
+     che avvisa l'utente del caricamento in corso da MongoDB. Appena giacche.js completa
+     la richiesta HTTP verso l'endpoint delle API, il testo viene rimosso e rimpiazzato
+     dalle card dei singoli articoli filtrati per la categoria corrispondente.
+
+  3) percorsi statici dinamici:
+     il foglio di stile motoshop_prodotti.css e lo script giacche.js vengono referenziati
+     utilizzando la funzione url_for('static', ...), garantendo che i link non si rompano
+     indipendentemente dall'ambiente di esecuzione o dalla struttura delle route.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- meta tag standard per codifica dei caratteri utf-8 e visualizzazione mobile responsive -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giacche - Motoshop</title>
+    <!-- foglio di stile globale con la palette scura comune a tutte le sezioni del catalogo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- navbar principale del sito inclusa tramite motore jinja2 -->
+    {% include 'navbar.html' %}
+
+    <!-- testata hero con titolo della categoria e breve descrizione del reparto -->
+    <header class="catalog-hero">
+        <h1>Giacche Moto</h1>
+        <p>Giacche in pelle e tessuto tecnico per guidare in ogni stagione.</p>
+    </header>
+
+    <!-- griglia prodotti: viene svuotata e popolata dinamicamente dallo script giacche.js -->
+    <section class="product-section" id="product-container">
+        <p style="color: #888; text-align: center; width: 100%;">Caricamento giacche dal database...</p>
+    </section>
+
+    <!-- footer condiviso con informazioni di copyright e note legali -->
+    {% include 'footer.html' %}
+
+    <!-- script per la chiamata fetch asincrona e la generazione dinamica delle schede prodotto -->
+    <script src="{{ url_for('static', filename='js/giacche.js') }}"></script>
+</body>
+</html>

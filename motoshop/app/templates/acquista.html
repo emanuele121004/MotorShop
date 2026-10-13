@@ -1,0 +1,57 @@
+<!--
+  DIARIO DI SVILUPPO - SCHERMATA TRANSIZIONE CARRELLO (acquista.html)
+  ==========================================================================
+  questa pagina html fa da ponte tra il catalogo prodotti e il checkout finale.
+  all'inizio avevo pensato di fare un semplice redirect secco a carrello.html appena
+  l'utente premeva su acquista, ma l'esperienza utente risultava troppo brusca.
+  ho preferito quindi creare questa view intermedia leggera con il messaggio di
+  conferma a video e il doppio bivio: procedere al pagamento oppure tornare indietro
+  a spulciare gli altri articoli in vetrina.
+
+  note sulle scelte tecniche e templating:
+  - niente duplicazione di header o footer: uso i classici blocchi 
+    di Jinja2 cosi se modifico la navbar la modifica si propaga in automatico ovunque.
+  - per i percorsi dei fogli di stile e delle pagine collegate evito gli url relativi
+    scritti a mano che spesso si rompono con il routing di Flask; passo sempre per
+    url_for richiamando la cartella static e l'endpoint serve_page registrato in app.py.
+  - il blocco #product-info viene lasciato intenzionalmente vuoto nel markup iniziale:
+    ci pensa lo script js dedicato (acquista_successo.js) a parsare la query string
+    con i dettagli dell'articolo e a montare la preview visiva nel dom al volo.
+-->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <!-- meta tag standard per la codifica dei caratteri e il viewport responsive -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acquisto - Motoshop</title>
+    <!-- foglio di stile globale con la grafica scura condivisa del catalogo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motoshop_prodotti.css') }}">
+</head>
+<body>
+    <!-- barra di navigazione principale del sito inclusa via jinja -->
+    {% include 'navbar.html' %}
+
+    <!-- contenitore centrale per la notifica visiva di avvenuta aggiunta al carrello -->
+    <main>
+        <div class="success-container">
+            <!-- messaggio in evidenza con lo stile arancione del tema -->
+            <h1 style="color: #ff9900; margin-bottom: 10px;">Prodotto aggiunto al carrello!</h1>
+            
+            <!-- Questo div viene riempito dinamicamente da JS leggendo i parametri passati nell'URL -->
+            <div id="product-info"></div>
+            
+            <br>
+            <!-- bottoni di navigazione: vai al checkout o torna a sfogliare il catalogo -->
+            <a href="{{ url_for('serve_page', filename='carrello.html') }}" class="btn-buy">Vai al Carrello</a>
+            <a href="{{ url_for('serve_page', filename='CatalogoUniversale.html') }}" class="btn-buy btn-secondary">Continua lo shopping</a>
+        </div>
+    </main>
+
+    <!-- footer del portale con copyright e link di servizio -->
+    {% include 'footer.html' %}
+
+    <!-- script client-side che gestisce la logica di lettura parametri e aggiorna lo storage -->
+    <script src="{{ url_for('static', filename='js/acquista_successo.js') }}"></script>
+</body>
+</html>
